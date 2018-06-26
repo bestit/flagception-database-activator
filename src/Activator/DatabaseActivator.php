@@ -50,7 +50,6 @@ class DatabaseActivator implements FeatureActivatorInterface
         $resolver = new OptionsResolver();
         $resolver->setDefaults([
             'db_table' => 'flagception_features',
-            'db_column_id' => 'id',
             'db_column_feature' => 'feature',
             'db_column_state' => 'state'
         ]);
@@ -83,7 +82,7 @@ class DatabaseActivator implements FeatureActivatorInterface
                 $this->options['db_column_state']
             )
             ->from($this->options['db_table'])
-            ->where(sprintf('%s = :feature', $this->options['db_table']))
+            ->where(sprintf('%s = :feature', $this->options['db_column_feature']))
             ->setParameter('feature', $name)
             ->execute()
             ->fetchColumn();
@@ -108,12 +107,10 @@ class DatabaseActivator implements FeatureActivatorInterface
         $schema = new Schema();
         $table = $schema->createTable($this->options['db_table']);
 
-        $table->addColumn($this->options['db_column_id'], 'integer', ['unsigned' => true]);
         $table->addColumn($this->options['db_column_feature'], 'string', ['length' => 255]);
         $table->addColumn($this->options['db_column_state'], 'boolean');
 
-        $table->setPrimaryKey([$this->options['db_column_id']]);
-        $table->addIndex([$this->options['db_column_feature']]);
+        $table->setPrimaryKey([$this->options['db_column_feature']]);
 
         $platform = $this->getConnection()->getDatabasePlatform();
         $queries = $schema->toSql($platform);
