@@ -3,10 +3,12 @@
 namespace Flagception\Database\Activator;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Schema\Schema;
 use Flagception\Activator\FeatureActivatorInterface;
 use Flagception\Model\Context;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
  * Activator for database flags
@@ -37,13 +39,22 @@ class DatabaseActivator implements FeatureActivatorInterface
      * @param Connection|array $clientOrDsn
      * @param array $options
      */
-    public function __construct($clientOrDsn, array $options)
+    public function __construct($clientOrDsn, array $options = [])
     {
         if ($clientOrDsn instanceof Connection) {
             $this->connection = $clientOrDsn;
         } else {
             $this->dsn = $clientOrDsn;
         }
+
+        $resolver = new OptionsResolver();
+        $resolver->setDefaults([
+            'db_table' => 'flagception_features',
+            'db_column_id' => 'id',
+            'db_column_feature' => 'feature',
+            'db_column_state' => 'state'
+        ]);
+        $this->mapping = $resolver->resolve($options);
 
         $this->options = $options;
     }
@@ -58,20 +69,52 @@ class DatabaseActivator implements FeatureActivatorInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @throws DBALException
      */
     public function isActive($name, Context $context)
     {
+        $builder = $this->getConnection()->createQueryBuilder();
+
+        /**
+         * $result contains the response from state (true / false) or false if no feature found
+         */
+        $result = $builder
+            ->select(
+                $this->options['db_column_state']
+            )
+            ->from($this->options['db_table'])
+            ->where(sprintf('%s = :feature', $this->options['db_table']))
+            ->setParameter('feature', $name)
+            ->execute()
+            ->fetchColumn();
+
+        return $result;
     }
 
+    /**
+     * Create feature table
+     *
+     * @return void
+     *
+     * @throws DBALException
+     */
     public function setup()
     {
+        $manager = $this->getConnection()->getSchemaManager();
+        if ($manager->tablesExist([$this->options['db_table']]) === true) {
+            return;
+        }
+
         $schema = new Schema();
-        $myTable = $schema->createTable($this->options['db_table']);
-        $myTable->addColumn($this->options['db_column_id'], 'integer', ['unsigned' => true]);
-        $myTable->addColumn($this->options['db_column_feature'], 'string', ['length' => 255]);
-        $myTable->addColumn($this->options['db_column_state'], 'boolean');
-        $myTable->addColumn($this->options['db_column_expression'], 'string', ['length' => 255]);
-        $myTable->setPrimaryKey(['id']);
+        $table = $schema->createTable($this->options['db_table']);
+
+        $table->addColumn($this->options['db_column_id'], 'integer', ['unsigned' => true]);
+        $table->addColumn($this->options['db_column_feature'], 'string', ['length' => 255]);
+        $table->addColumn($this->options['db_column_state'], 'boolean');
+
+        $table->setPrimaryKey([$this->options['db_column_id']]);
+        $table->addIndex([$this->options['db_column_feature']]);
 
         $platform = $this->getConnection()->getDatabasePlatform();
         $queries = $schema->toSql($platform);
@@ -81,7 +124,14 @@ class DatabaseActivator implements FeatureActivatorInterface
         }
     }
 
-    private function getConnection(): Connection
+    /**
+     * Get connection or create a new connection
+     *
+     * @return Connection
+     *
+     * @throws DBALException
+     */
+    private function getConnection()
     {
         // Initiate connection if not exist
         if ($this->connection === null) {
