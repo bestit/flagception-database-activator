@@ -54,9 +54,8 @@ class DatabaseActivator implements FeatureActivatorInterface
             'db_column_feature' => 'feature',
             'db_column_state' => 'state'
         ]);
-        $this->mapping = $resolver->resolve($options);
 
-        $this->options = $options;
+        $this->options = $resolver->resolve($options);
     }
 
     /**
