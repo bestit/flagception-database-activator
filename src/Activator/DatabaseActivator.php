@@ -19,16 +19,22 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 class DatabaseActivator implements FeatureActivatorInterface
 {
     /**
+     * DSN as array or null if not set
+     *
      * @var array|null
      */
     private $dsn;
 
     /**
+     * Table options
+     *
      * @var array
      */
     private $options;
 
     /**
+     * Active connection or null if no connection exists
+     *
      * @var Connection|null
      */
     private $connection;
@@ -74,9 +80,7 @@ class DatabaseActivator implements FeatureActivatorInterface
     {
         $builder = $this->getConnection()->createQueryBuilder();
 
-        /**
-         * $result contains the response from state (true / false) or false if no feature found
-         */
+        // $result contains the response from state (true / false) or false if no feature found
         $result = $builder
             ->select(
                 $this->options['db_column_state']
