@@ -131,7 +131,7 @@ class YourClass
     public function run()
     {
         $activator = new DatabaseActivator(['url' => 'mysql://user:secret@localhost/mydb'], [
-            'db_table' => 'my_feature_table,
+            'db_table' => 'my_feature_table',
             'db_column_feature' => 'foo_feature_name',
             'db_column_state' => 'foo_is_active'
         ]);

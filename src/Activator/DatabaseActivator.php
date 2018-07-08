@@ -91,7 +91,7 @@ class DatabaseActivator implements FeatureActivatorInterface
             ->execute()
             ->fetchColumn();
 
-        return $result;
+        return is_bool($result) ? $result : filter_var($result, FILTER_VALIDATE_BOOLEAN);
     }
 
     /**
@@ -131,7 +131,7 @@ class DatabaseActivator implements FeatureActivatorInterface
      *
      * @throws DBALException
      */
-    private function getConnection()
+    public function getConnection()
     {
         // Initiate connection if not exist
         if ($this->connection === null) {
