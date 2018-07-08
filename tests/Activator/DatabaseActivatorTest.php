@@ -140,6 +140,31 @@ class DatabaseActivatorTest extends TestCase
     }
 
     /**
+     * Test setup already executed
+     *
+     * @return void
+     *
+     * @throws DBALException
+     */
+    public function testSetupAlreadyExecuted()
+    {
+        $activator = new DatabaseActivator([
+                'url' => 'sqlite:///:memory:'
+            ]
+        );
+
+        $activator->setup();
+        $activator->setup();
+
+        $this->runIntegration(
+            $activator->getConnection(),
+            'flagception_features',
+            'feature',
+            'state'
+        );
+    }
+
+    /**
      * Test setup with default options
      *
      * @return void
