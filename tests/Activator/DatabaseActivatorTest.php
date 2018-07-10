@@ -116,62 +116,13 @@ class DatabaseActivatorTest extends TestCase
     }
 
     /**
-     * Test setup with default options
+     * Test active states
      *
      * @return void
      *
      * @throws DBALException
      */
-    public function testSetupDefaultOptions()
-    {
-        $activator = new DatabaseActivator([
-                'url' => 'sqlite:///:memory:'
-            ]
-        );
-
-        $activator->setup();
-
-        $this->runIntegration(
-            $activator->getConnection(),
-            'flagception_features',
-            'feature',
-            'state'
-        );
-    }
-
-    /**
-     * Test setup already executed
-     *
-     * @return void
-     *
-     * @throws DBALException
-     */
-    public function testSetupAlreadyExecuted()
-    {
-        $activator = new DatabaseActivator([
-                'url' => 'sqlite:///:memory:'
-            ]
-        );
-
-        $activator->setup();
-        $activator->setup();
-
-        $this->runIntegration(
-            $activator->getConnection(),
-            'flagception_features',
-            'feature',
-            'state'
-        );
-    }
-
-    /**
-     * Test setup with default options
-     *
-     * @return void
-     *
-     * @throws DBALException
-     */
-    public function testSetupWithOptions()
+    public function testActiveStates()
     {
         $activator = new DatabaseActivator(
             [
@@ -184,37 +135,13 @@ class DatabaseActivatorTest extends TestCase
             ]
         );
 
-        $activator->setup();
+        static::assertFalse($activator->isActive('abc', new Context()));
 
         $this->runIntegration(
             $activator->getConnection(),
             'my_feature_table',
             'foo_feature_name',
             'foo_is_active'
-        );
-    }
-
-    /**
-     * Test active states
-     *
-     * @return void
-     *
-     * @throws DBALException
-     */
-    public function testActiveStates()
-    {
-        $activator = new DatabaseActivator([
-                'url' => 'sqlite:///:memory:'
-            ]
-        );
-
-        $activator->setup();
-
-        $this->runIntegration(
-            $activator->getConnection(),
-            'flagception_features',
-            'feature',
-            'state'
         );
 
         static::assertTrue($activator->isActive('abc', new Context()));

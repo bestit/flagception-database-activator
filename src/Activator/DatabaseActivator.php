@@ -40,6 +40,13 @@ class DatabaseActivator implements FeatureActivatorInterface
     private $connection;
 
     /**
+     * Does table exists
+     *
+     * @var bool
+     */
+    private $tablesExist = false;
+
+    /**
      * DatabaseActivator constructor.
      *
      * @param Connection|array $clientOrDsn
@@ -78,6 +85,8 @@ class DatabaseActivator implements FeatureActivatorInterface
      */
     public function isActive($name, Context $context)
     {
+        $this->setup();
+
         $builder = $this->getConnection()->createQueryBuilder();
 
         // $result contains the response from state (true / false) or false if no feature found
@@ -101,10 +110,12 @@ class DatabaseActivator implements FeatureActivatorInterface
      *
      * @throws DBALException
      */
-    public function setup()
+    private function setup()
     {
         $manager = $this->getConnection()->getSchemaManager();
-        if ($manager->tablesExist([$this->options['db_table']]) === true) {
+        if ($this->tablesExist === true || $manager->tablesExist([$this->options['db_table']]) === true) {
+            $this->tablesExist = true;
+
             return;
         }
 
@@ -122,6 +133,8 @@ class DatabaseActivator implements FeatureActivatorInterface
         foreach ($queries as $query) {
             $this->getConnection()->executeQuery($query);
         }
+
+        $this->tablesExist = true;
     }
 
     /**
