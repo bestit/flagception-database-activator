@@ -25,9 +25,6 @@ class YourClass
     {
         $activator = new DatabaseActivator(['url' => 'mysql://user:secret@localhost/mydb']);
         
-        // The setup method should be called only once. This method create a new table for storing the feature states.
-        $activator->setup();
-        
         $manager = new FeatureManager($activator);
         if ($manager->isActive('your_feature_name')) {
             // do something
@@ -117,7 +114,7 @@ class YourClass
 
 #### Table
 
-The `setup` method create a table for storing the features. The default table name is `flagception_features` which contains
+The activator will create the sql table if it does not already exist. The default table name is `flagception_features` which contains
 a `feature` and a `state` column. You can change the table and columns names by the second argument. It expects
 an array with values for `db_table`, `db_column_feature` and `db_column_state`. Setting one of the fields in optional.
 
@@ -136,8 +133,7 @@ class YourClass
             'db_column_state' => 'foo_is_active'
         ]);
         
-        // The setup method create a table 'my_feature_table' with the column 'foo_feature_name' and 'foo_is_active'.
-        $activator->setup();
+        // The activator create a table 'my_feature_table' with the column 'foo_feature_name' and 'foo_is_active'.
         
         $manager = new FeatureManager($activator);
         if ($manager->isActive('your_feature_name')) {
