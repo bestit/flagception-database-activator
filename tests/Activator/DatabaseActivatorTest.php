@@ -3,7 +3,8 @@
 namespace Flagception\Database\Tests\Activator;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Driver\Exception as DBALDriverException;
+use Doctrine\DBAL\Exception as DBALException;
 use Flagception\Activator\FeatureActivatorInterface;
 use Flagception\Database\Activator\DatabaseActivator;
 use Flagception\Model\Context;
@@ -120,7 +121,7 @@ class DatabaseActivatorTest extends TestCase
      *
      * @return void
      *
-     * @throws DBALException
+     * @throws DBALException|DBALDriverException
      */
     public function testActiveStates()
     {
@@ -158,7 +159,7 @@ class DatabaseActivatorTest extends TestCase
      *
      * @return void
      *
-     * @throws DBALException
+     * @throws DBALException|DBALDriverException
      */
     private function runIntegration(Connection $connection, $tableName, $featureColumn, $stateColumn)
     {
@@ -172,7 +173,7 @@ class DatabaseActivatorTest extends TestCase
             $stateColumn => false
         ]);
 
-        $result = $connection->query("SELECT $featureColumn, $stateColumn FROM $tableName")->fetchAll();
+        $result = $connection->executeQuery("SELECT $featureColumn, $stateColumn FROM $tableName")->fetchAllAssociative();
 
         static::assertEquals([
             [

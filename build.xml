@@ -3,16 +3,17 @@
     <autoloader autoloaderpath="vendor/autoload.php"/>
 
     <target name="php-cs" description="PHP CodeSniffer">
-        <phpcodesniffer
-                standard="./build/phpcs.xml"
-                showSniffs="true"
-                showWarnings="true"
-                haltonerror="true"
-                haltonwarning="true">
-            <fileset dir="./">
-                <include name="src/**/*.php"/>
-            </fileset>
-        </phpcodesniffer>
+        <exec command="./vendor/bin/phpcs
+                    --config-set show_progress 1
+                    --config-set show_warnings 1
+                    --config-set ignore_warnings_on_exit 0
+                    --config-set ignore_errors_on_exit 0
+                    --report=checkstyle
+                    --standard=./build/phpcs.xml
+                    --extensions=php
+                    --colors -p
+                    src/**/*.php"
+              logoutput="true" />
     </target>
 
     <target name="php-unit" description="Execute php unit tests">

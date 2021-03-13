@@ -3,8 +3,9 @@
 namespace Flagception\Database\Activator;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Driver\Exception as DBALDriverException;
 use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Exception as DBALException;
 use Doctrine\DBAL\Schema\Schema;
 use Flagception\Activator\FeatureActivatorInterface;
 use Flagception\Model\Context;
@@ -21,14 +22,14 @@ class DatabaseActivator implements FeatureActivatorInterface
     /**
      * DSN as array or null if not set
      *
-     * @var array|null
+     * @var array<string>|null
      */
     private $dsn;
 
     /**
      * Table options
      *
-     * @var array
+     * @var array<string>
      */
     private $options;
 
@@ -49,8 +50,8 @@ class DatabaseActivator implements FeatureActivatorInterface
     /**
      * DatabaseActivator constructor.
      *
-     * @param Connection|array $clientOrDsn
-     * @param array $options
+     * @param Connection|array<string> $clientOrDsn
+     * @param array<string> $options
      */
     public function __construct($clientOrDsn, array $options = [])
     {
@@ -73,7 +74,7 @@ class DatabaseActivator implements FeatureActivatorInterface
     /**
      * {@inheritdoc}
      */
-    public function getName()
+    public function getName(): string
     {
         return 'database';
     }
@@ -81,24 +82,22 @@ class DatabaseActivator implements FeatureActivatorInterface
     /**
      * {@inheritdoc}
      *
-     * @throws DBALException
+     * @throws DBALException|DBALDriverException
      */
-    public function isActive($name, Context $context)
+    public function isActive($name, Context $context): bool
     {
         $this->setup();
 
-        $builder = $this->getConnection()->createQueryBuilder();
-
         // $result contains the response from state (true / false) or false if no feature found
-        $result = $builder
-            ->select(
-                $this->options['db_column_state']
+        $result = $this->getConnection()->executeQuery(
+            sprintf(
+                'SELECT %s FROM %s WHERE %s = "%s"',
+                $this->options['db_column_state'],
+                $this->options['db_table'],
+                $this->options['db_column_feature'],
+                $name
             )
-            ->from($this->options['db_table'])
-            ->where(sprintf('%s = :feature', $this->options['db_column_feature']))
-            ->setParameter('feature', $name)
-            ->execute()
-            ->fetchColumn();
+        )->fetchOne();
 
         return is_bool($result) ? $result : filter_var($result, FILTER_VALIDATE_BOOLEAN);
     }
@@ -110,7 +109,7 @@ class DatabaseActivator implements FeatureActivatorInterface
      *
      * @throws DBALException
      */
-    private function setup()
+    private function setup(): void
     {
         $manager = $this->getConnection()->getSchemaManager();
         if ($this->tablesExist === true || $manager->tablesExist([$this->options['db_table']]) === true) {
@@ -144,7 +143,7 @@ class DatabaseActivator implements FeatureActivatorInterface
      *
      * @throws DBALException
      */
-    public function getConnection()
+    public function getConnection(): Connection
     {
         // Initiate connection if not exist
         if ($this->connection === null) {
