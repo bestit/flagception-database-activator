@@ -91,12 +91,12 @@ class DatabaseActivator implements FeatureActivatorInterface
         // $result contains the response from state (true / false) or false if no feature found
         $result = $this->getConnection()->executeQuery(
             sprintf(
-                'SELECT %s FROM %s WHERE %s = "%s"',
+                'SELECT %s FROM %s WHERE %s = :feature_name',
                 $this->options['db_column_state'],
                 $this->options['db_table'],
                 $this->options['db_column_feature'],
-                $name
-            )
+            ),
+            ['feature_name' => $name]
         )->fetchOne();
 
         return is_bool($result) ? $result : filter_var($result, FILTER_VALIDATE_BOOLEAN);
