@@ -88,11 +88,11 @@ class DatabaseActivatorTest extends TestCase
     public function testSetConnectByPdo()
     {
         $activator = new DatabaseActivator([
+            'driver' => 'pdo_mysql',
             'pdo' => $pdo = $this->createMock(PDO::class)
         ]);
 
         $pdo
-            ->expects(static::once())
             ->method('getAttribute')
             ->with(PDO::ATTR_DRIVER_NAME)
             ->willReturn('mysql');
@@ -173,7 +173,7 @@ class DatabaseActivatorTest extends TestCase
             $stateColumn => false
         ]);
 
-        $result = $connection->executeQuery("SELECT $featureColumn, $stateColumn FROM $tableName")->fetchAllAssociative();
+        $result = $connection->fetchAllAssociative("SELECT $featureColumn, $stateColumn FROM $tableName");
 
         static::assertEquals([
             [

@@ -6,6 +6,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\Exception as DBALDriverException;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception as DBALException;
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Schema;
 use Flagception\Activator\FeatureActivatorInterface;
 use Flagception\Model\Context;
@@ -89,7 +90,7 @@ class DatabaseActivator implements FeatureActivatorInterface
         $this->setup();
 
         // $result contains the response from state (true / false) or false if no feature found
-        $result = $this->getConnection()->executeQuery(
+        $result = $this->getConnection()->fetchOne(
             sprintf(
                 'SELECT %s FROM %s WHERE %s = :feature_name',
                 $this->options['db_column_state'],
@@ -97,7 +98,7 @@ class DatabaseActivator implements FeatureActivatorInterface
                 $this->options['db_column_feature'],
             ),
             ['feature_name' => $name]
-        )->fetchOne();
+        );
 
         return is_bool($result) ? $result : filter_var($result, FILTER_VALIDATE_BOOLEAN);
     }
@@ -111,7 +112,7 @@ class DatabaseActivator implements FeatureActivatorInterface
      */
     private function setup(): void
     {
-        $manager = $this->getConnection()->getSchemaManager();
+        $manager = $this->createSchemaManager();
         if ($this->tablesExist === true || $manager->tablesExist([$this->options['db_table']]) === true) {
             $this->tablesExist = true;
 
@@ -130,7 +131,7 @@ class DatabaseActivator implements FeatureActivatorInterface
         $queries = $schema->toSql($platform);
 
         foreach ($queries as $query) {
-            $this->getConnection()->executeQuery($query);
+            $this->getConnection()->executeStatement($query);
         }
 
         $this->tablesExist = true;
@@ -151,5 +152,20 @@ class DatabaseActivator implements FeatureActivatorInterface
         }
 
         return $this->connection;
+    }
+
+    /**
+     * Fetches the schema manager from the DBAL connection.
+     *
+     * @throws DBALException
+     */
+    private function createSchemaManager(): ?AbstractSchemaManager
+    {
+        $connection = $this->getConnection();
+
+        // BC for DBAL 2
+        return method_exists($connection, 'createSchemaManager')
+            ? $connection->createSchemaManager()
+            : $connection->getSchemaManager();
     }
 }
