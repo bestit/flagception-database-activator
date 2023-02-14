@@ -9,10 +9,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        php: [ '7.3', '7.4', '8.0', '8.1', '8.2' ]
         stability: [ prefer-stable ]
         include:
           - php: '7.3'
             stability: prefer-lowest
+          - php: '7.3'
           - php: '7.4'
           - php: '8.0'
           - php: '8.1'
@@ -40,9 +42,7 @@ jobs:
           vendor/bin/simple-phpunit install
 
       - name: Execute tests
-        env:
-          SYMFONY_DEPRECATIONS_HELPER: 'weak'
-        run: ./vendor/bin/simple-phpunit --verbose --coverage-text
+        run: ./vendor/bin/simple-phpunit --verbose
 
 
   cs:
