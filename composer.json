@@ -19,7 +19,7 @@
   "require-dev": {
     "ext-pdo": "*",
     "phing/phing": "^2.16",
-    "symfony/phpunit-bridge": "^5.2",
+    "symfony/phpunit-bridge": "^5.2||^6.0",
     "phpunit/phpunit": "^9.5",
     "squizlabs/php_codesniffer": "^3.5",
     "php-coveralls/php-coveralls": "^v2.4"
@@ -39,5 +39,10 @@
       "name": "flagception/flagception",
       "url": "https://github.com/bestit/flagception-sdk"
     }
+  },
+  "scripts": {
+    "phing": [
+      "./vendor/bin/phing build"
+    ]
   }
 }
