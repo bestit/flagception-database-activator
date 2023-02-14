@@ -42,7 +42,7 @@ jobs:
           vendor/bin/simple-phpunit install
 
       - name: Execute tests
-        run: ./vendor/bin/simple-phpunit --verbose
+        run: ./vendor/bin/simple-phpunit --configuration "../build/phpunit.xml" --verbose --coverage-text
 
 
   cs:
