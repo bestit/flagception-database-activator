@@ -39,10 +39,9 @@ jobs:
       - name: Install dependencies
         run: |
           composer update --prefer-dist --no-interaction
-          vendor/bin/simple-phpunit install
 
       - name: Execute tests
-        run: ./vendor/bin/simple-phpunit --configuration "./build/phpunit.xml" --verbose --coverage-text
+        run: ./vendor/bin/phpunit --configuration "./build/phpunit.xml" --verbose --coverage-text
 
 
   cs:
