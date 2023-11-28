@@ -94,7 +94,7 @@ class DatabaseActivator implements FeatureActivatorInterface
                 'SELECT %s FROM %s WHERE %s = :feature_name',
                 $this->options['db_column_state'],
                 $this->options['db_table'],
-                $this->options['db_column_feature'],
+                $this->options['db_column_feature']
             ),
             ['feature_name' => $name]
         )->fetchOne();
